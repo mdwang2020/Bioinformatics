@@ -1,9 +1,9 @@
 from scipy.misc import *
 import numpy as np
 from scipy.optimize import *
-from scipy.optimize import BFGS
 from scipy.optimize import LinearConstraint
 from scipy.optimize import NonlinearConstraint
+import sys
 
 #Global variables are necessary here because the nonlinear constraint in the solver itself are unable to take in args
 D = None
@@ -13,6 +13,13 @@ nk = None
 
 
 def save_natural_vector(sequence_file, vector_file, m):
+    """
+    Converts the sequence to a natural vector
+    :param sequence_file: DNA sequence
+    :param vector_file: file where the converted vetor is saved to
+    :param m: degree of the moment
+    :return: "vector file saved"
+    """
     vec_file = open(vector_file, 'w')
     with open(sequence_file) as fp:
         line = fp.readline()
@@ -28,6 +35,11 @@ def save_natural_vector(sequence_file, vector_file, m):
 
 
 def index_map(letter):
+    """
+    Defines the index of each letter in the sequence
+    :param letter: an a, c, t, or g
+    :return: 0
+    """
     if letter == 'a':
         return 0
     elif letter == 'c':
@@ -45,7 +57,7 @@ def converter_m(sequence, m):
     Convert DNA sequence to natural vector of m-th moments
     :param sequence: 'accgttacct'
     :param m: the order of the highest moment
-    :return: list represents the natural vector of dimension 4*(m+1)
+    :return: list that represents the natural vector of dimension 4 * (m + 1)
     """
     na_vect = [0] * (4 * (m + 1))
     counter = [0] * 4
@@ -58,37 +70,12 @@ def converter_m(sequence, m):
     for k in range(0,4):
         na_vect[k] = counter[k]
         na_vect[k + 4] = pos_sum[k] / counter[k]
-
     n = sum(counter)
     for i in range(0, len(sequence)):
         for t in range(2, m+1):
             for k in range(0,4):
                 na_vect[4*t+k] += (i - na_vect[k+4])**t / n**(t-1) / na_vect[k]**(t-1)
-
     return na_vect
-
-
-def sum_fun(x, D, m_deg, nk):
-    """
-    Substitutes the nk, muk, and D2k present in the general formula for constraint conditions of normalized central
-    moments for the linear combinations between alpha and their respective vectors in the form of dot products.
-    :param x: list of N length
-    :param D: matrix of 4 x m+1 x N dimensions
-    :param m_deg: integer that represents the order moment
-    :param nk: 4 element list, with each element representing nA, nC, nG, and nT, respectively (determined by the 4-d
-               projection)
-    :return: a real number
-    """
-    n = sum(nk)
-    sum_2 = 0
-    sum_1 = 0
-    for k in range(0, 4):
-        sum_1 = 0
-        for t in range(1, m_deg):
-            sum_1 = n ** (m - t) * comb(m, t - 1) * nk[k] ** (m - 1) * \
-                    np.dot(x, D[k][m-t+1]) * (np.dot(x, D[k][1])) ** (t - 1)
-        sum_2 += nk[k] * (np.dot(x, D[k][1]) ** m)
-    return sum_1 + sum_2
 
 
 def linear_constraint_matrix():
@@ -97,8 +84,7 @@ def linear_constraint_matrix():
     constraints.
     :return: 6 x N matrix
     """
-    #D, N, m_deg, nk = args[0], args[1], args[2], args[3]
-    #The four variables above are used instead by the global variables defined at the top of the code
+    #D, N, and nk are global variables defined at the top of the code
     c = [[], [], [], [], [], []]
     for i in range(0, N):
         c[0].append(1)
@@ -333,7 +319,13 @@ def neg_f_hess(x, *args):
 
 
 if __name__ == "__main__":
-    m = 4
+    # enter in terminal "python solve.py m", where m >= 2
+    m = int(sys.argv[1])
+    print(m)
+    #the number of As, Cs, Ts, and Gs. To be tested
+    test_nk = [2890, 1436, 1817, 1875]
+    nk = test_nk
+    n = sum(test_nk)
     # generate natural vector file
     save_natural_vector('group_M_shortest20.fasta', 'vectors_1.txt', m)
     sequence_file = 'C:\\Users\\pizza\\PycharmProjects\\Bioinformatics\\vectors_1.txt'
@@ -341,6 +333,11 @@ if __name__ == "__main__":
     mu = [[], [], [], []]
     D = [[[] for j in range(m + 1)] for k in range(4)]
     N = 0
+    """
+        D[k][0] is nk, where nk is the sum of n_A, n_C, n_G, and n_T
+        D[k][1] is mu_k. mean of the positions
+        D[k][n] n >=2. represents the nth moment
+    """
     sf = open(sequence_file)
     line = sf.readline()
     while line:
@@ -353,25 +350,31 @@ if __name__ == "__main__":
                 D[3][t].append(float(line[t * 4 + 3]))
             N += 1
         line = sf.readline()
-    test_nk = [2890, 1436, 1817, 1875]
     additional = (D, N, m, test_nk)
-    nk = test_nk
     m_deg = m
     lin_con_matrix = linear_constraint_matrix()
     linear_constraint = LinearConstraint(lin_con_matrix, linear_bound(test_nk), linear_bound(test_nk))
-    n = sum(test_nk)
-    nonlinear_constraint = NonlinearConstraint(non_linear_const_matrix, nonlinear_bound(test_nk, m),
-                                               nonlinear_bound(test_nk, m),jac=nonlinear_jac_matrix,
-                                               hess=nonlinear_hess_matrix)
-    bounds = Bounds([0.00000001] * N, [0.99999999] * N)
+    bounds = Bounds([0] * N, [1] * N)
+    #initial guess of alpha
     x0 = np.asarray([1 / N] * N)
+
+    if m == 2:
+        opt_constraints = [linear_constraint]
+    elif m >= 3:
+        nonlinear_constraint = NonlinearConstraint(non_linear_const_matrix, nonlinear_bound(test_nk, m),
+                                                   nonlinear_bound(test_nk, m), jac=nonlinear_jac_matrix,
+                                                   hess=nonlinear_hess_matrix)
+        opt_constraints = [linear_constraint, nonlinear_constraint]
+    else:
+        print("Invalid m value.")
+        quit()
+
     min_res = minimize(f, x0, args=additional, method='trust-constr', jac=f_jac, hess=f_hess,
-                       constraints=[linear_constraint, nonlinear_constraint],
-                                   options={'verbose':1}, bounds=bounds)
+                       constraints=opt_constraints, options={'verbose':1}, bounds=bounds)
     print(min_res.x)
 
     max_res = minimize(neg_f, x0, args=additional, method='trust-constr', jac=neg_f_jac, hess=neg_f_hess,
-                      constraints=[linear_constraint, nonlinear_constraint], options={'verbose': 1}, bounds=bounds)
+                      constraints=opt_constraints, options={'verbose': 1}, bounds=bounds)
     print(max_res.x)
     sm = exp_sum(n, m)
     print(min_res.fun <= sm <= -max_res.fun)
