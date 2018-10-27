@@ -329,8 +329,6 @@ if __name__ == "__main__":
     # generate natural vector file
     save_natural_vector('group_M_shortest20.fasta', 'vectors_1.txt', m)
     sequence_file = 'C:\\Users\\pizza\\PycharmProjects\\Bioinformatics\\vectors_1.txt'
-    nk = [[], [], [], []]
-    mu = [[], [], [], []]
     D = [[[] for j in range(m + 1)] for k in range(4)]
     N = 0
     """
