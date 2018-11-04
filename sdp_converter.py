@@ -241,7 +241,7 @@ if __name__ == "__main__":
     inequalities = bounds(n_vars, x)
     equalities = equalities_func(D, max_degree, test_nk, x)
 
-    sdp = SdpRelaxation(x)
+    sdp = SdpRelaxation(x, parallel=True)
 
     # Find the minimum
     print('find min start...')
