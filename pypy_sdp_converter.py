@@ -253,6 +253,7 @@ if __name__ == "__main__":
     sdp.write_to_file(min_model_file)
     print('SDPA model file saved: %s' % min_model_file)
 
+    """
     # The solver only works when there's an optimizer installed, such as MOSEK.
     sdp.solve()
     # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
@@ -269,6 +270,7 @@ if __name__ == "__main__":
     for i in range(n_vars):
         subs[x[i]] = sdp[x[i]]
     obj.evalf(subs=subs)
+    """
 
     # Find the maximum 
     print('find max start...')
@@ -280,6 +282,7 @@ if __name__ == "__main__":
     sdp.write_to_file(max_model_file)
     print('SDPA model file saved: %s' % max_model_file)
 
+    """
     # The solver only works when there's an optimizer installed, such as MOSEK.
     sdp.solve()
     # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
@@ -302,3 +305,4 @@ if __name__ == "__main__":
         print('There is a solution.')
     else:
         print('There is not a solution.')
+    """
