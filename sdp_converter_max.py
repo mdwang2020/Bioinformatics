@@ -217,9 +217,8 @@ if __name__ == "__main__":
     # the number of As, Cs, Ts, and Gs. To be tested
     test_nk = [2890, 1436, 1817, 1875]
     level = 2  # Requested level of relaxation, for accuracy
-    min_model_file = 'seq_ver_min_model_%s.dat-s' % max_degree
-    max_model_file = 'seq_ver_max_model_%s.dat-s' % max_degree
-    #sequence_file = 'group_M_shortest20.fasta'
+    min_model_file = 'seq_ver_min_model_%d.dat-s' % max_degree
+    max_model_file = 'seq_ver_max_model_%d.dat-s' % max_degree
     sequence_file = 'SeqVer.fasta'
     vector_file = 'SeqVer_vectors.txt'
 
@@ -242,36 +241,7 @@ if __name__ == "__main__":
     inequalities = bounds(n_vars, x)
     equalities = equalities_func(D, max_degree, test_nk, x)
 
-    sdp = SdpRelaxation(x,parallel=True)
-
-    # Find the minimum
-    print('find min start...')
-    obj = s_func(D, max_degree, test_nk, x)
-    print('Starting sdp conversion ...')
-    sdp.get_relaxation(level, objective=obj, inequalities=inequalities, equalities=equalities)
-    print('sdp relaxation finished')
-    print('saving SDPA model file ...')
-    sdp.write_to_file(min_model_file)
-    print('SDPA model file saved: %s' % min_model_file)
-
-    """
-    # The solver only works when there's an optimizer installed, such as MOSEK.
-    sdp.solve()
-    # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
-    print(sdp.primal, sdp.dual, sdp.status)
-    if sdp.status == "optimal":
-        min_cost = sdp.primal
-    else:
-        min_cost = 0
-    # Prints the points of optimization
-    for i in range(n_vars):
-        print((sdp[x[i]]))
-    # Evaluates the cost function at the minimized point
-    subs = {}
-    for i in range(n_vars):
-        subs[x[i]] = sdp[x[i]]
-    obj.evalf(subs=subs)
-    """
+    sdp = SdpRelaxation(x, parallel=True)
 
     # Find the maximum 
     print('find max start...')
@@ -283,7 +253,6 @@ if __name__ == "__main__":
     sdp.write_to_file(max_model_file)
     print('SDPA model file saved: %s' % max_model_file)
 
-    """
     # The solver only works when there's an optimizer installed, such as MOSEK.
     sdp.solve()
     # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
@@ -306,4 +275,3 @@ if __name__ == "__main__":
         print('There is a solution.')
     else:
         print('There is not a solution.')
-    """

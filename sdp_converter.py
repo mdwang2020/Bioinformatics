@@ -217,9 +217,9 @@ if __name__ == "__main__":
     # the number of As, Cs, Ts, and Gs. To be tested
     test_nk = [2890, 1436, 1817, 1875]
     level = 2  # Requested level of relaxation, for accuracy
-    min_model_file = 'seq_ver_min_model.dat-s'
-    max_model_file = 'seq_ver_max_model.dat-s'
-    sequence_file = 'group_M_shortest20.fasta'
+    min_model_file = 'seq_ver_min_model_%d.dat-s' % max_degree
+    max_model_file = 'seq_ver_max_model_%d.dat-s' % max_degree
+    sequence_file = 'SeqVer.fasta'
     vector_file = 'SeqVer_vectors.txt'
 
     # generate natural vector file
