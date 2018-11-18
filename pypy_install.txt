@@ -1,0 +1,50 @@
+0. Install wget
+
+	$ sudo yum install wget
+	
+
+1. Install PyPy
+    $ wget https://bitbucket.org/squeaky/portable-pypy/downloads/pypy-6.0.0-linux_x86_64-portable.tar.bz2
+    $ tar xvjf pypy-6.0.0-linux_x86_64-portable.tar.bz2
+    $ pypy-6.0.0-linux_x86_64-portable/bin/pypy -m ensurepip
+    $ sudo ln -s ~/pypy-6.0.0-linux_x86_64-portable/bin/pypy /usr/local/bin
+2. Install C++
+    #Only for AWSEC2
+    $ sudo yum groupinstall "Development Tools"
+3. Install Numpy
+    $ git clone https://bitbucket.org/pypy/numpy.git
+	$ cd numpy
+	$ pypy setup.py install
+4. Install ncpol2sdpa
+    $ cd ~
+    $ pypy -m pip install ncpol2sdpa
+5. Install SDPA
+    //get sdpa tar file
+    $ mkdir -p $HOME/sdpa
+	$ cd sdpa
+	$ wget https://sourceforge.net/projects/sdpa/files/sdpa/sdpa_7.3.8.tar.gz
+	$ tar -xzf sdpa_7.3.8.tar.gz
+
+    // install GotoBLAS library first, used by SDPA
+	$ git clone https://github.com/xianyi/OpenBLAS.git
+	$ cd OpenBLAS
+
+    // compile source code for OpenBLAS
+	$ make BINARY=64 CC=gcc FC=gfortran USE_OPENMP=0 NO_CBLAS=1 NO_WARMUP=1 libs netlib;
+
+    // compile code for SDPA
+	$ cd ..
+	$ cd sdpa-7.3.8
+	$ export CC=gcc
+	$ export CXX=g++
+	$ export FC=gfortran
+	$ export CFLAGS="-funroll-all-loops"
+	$ export CXXFLAGS="-funroll-all-loops"
+	$ export FFLAGS="-funroll-all-loops"
+	$ ./configure --prefix=$HOME/sdpa --with-blas="${HOME}/sdpa/OpenBLAS/libopenblas.a" --with-lapack="${HOME}/sdpa/OpenBLAS/libopenblas.a"
+	$ make
+	$ make install
+6. Install MOSEK
+    $ wget https://download.mosek.com/stable/8.1.0.67/mosektoolslinux64x86.tar.bz2
+	$ tar xvjf mosektoolslinux64x86.tar.bz2
+	$ pypy mosek/8/tools/platform/linux64x86/python/2/setup.py install

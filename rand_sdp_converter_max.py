@@ -109,7 +109,7 @@ def save_natural_vector(sequence_file, vector_file, m, rand_sequences):
     :return: "vector file saved"
     """
     vec_file = open(vector_file, 'w')
-    x = random.sample(range(100), rand_sequences)
+    x = random.sample(range(101), rand_sequences)
     for i in range(len(x)):
         x[i] *= 2
     with open(sequence_file) as fp:
@@ -218,6 +218,7 @@ def exp_sum(m, n):
 if __name__ == "__main__":
     # enter in terminal "python tester.py m", where m >= 2
     max_degree = int(sys.argv[1])
+    random_seq_num = sys.argv[2]
 
     # the number of As, Cs, Ts, and Gs. To be tested
     test_nk = [2890, 1436, 1817, 1875]
@@ -225,7 +226,7 @@ if __name__ == "__main__":
     min_model_file = 'seq_ver_min_model_%d.dat-s' % max_degree
     max_model_file = 'seq_ver_max_model_%d.dat-s' % max_degree
     sequence_file = 'SeqVer.fasta'
-    vector_file = 'SeqVer_vectors.txt'
+    vector_file = 'SeqVer_vectors_%s.txt' % random_seq_num
 
     # generate natural vector file
     # save_natural_vector('SeqVer.fasta', 'SeqVer_vectors.txt', max_degree)
