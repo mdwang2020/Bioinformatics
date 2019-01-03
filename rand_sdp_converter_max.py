@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from ncpol2sdpa import *
 import random
-
+import time
 
 def comb(n, k):
     """
@@ -216,6 +216,7 @@ def exp_sum(m, n):
 
 
 if __name__ == "__main__":
+    then = time.time()
     # enter in terminal "python tester.py m", where m >= 2
     max_degree = int(sys.argv[1])
 
@@ -229,7 +230,7 @@ if __name__ == "__main__":
 
     # generate natural vector file
     # save_natural_vector('SeqVer.fasta', 'SeqVer_vectors.txt', max_degree)
-    save_natural_vector(sequence_file, vector_file, max_degree, 36)
+    save_natural_vector(sequence_file, vector_file, max_degree, 30)
     D, N = nv_converter(vector_file, max_degree)
     print('natural vector file saved: %s' % sequence_file)
     """
@@ -258,7 +259,9 @@ if __name__ == "__main__":
     sdp.write_to_file(max_model_file)
     print('SDPA model file saved: %s' % max_model_file)
 
-"""
+    now = time.time()
+    print("It took: ", now - then, " seconds")
+"""j
 
     # The solver only works when there's an optimizer installed, such as MOSEK.
     sdp.solve()

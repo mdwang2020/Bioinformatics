@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 from ncpol2sdpa import *
+import random
 
 
 def comb(n, k):
@@ -98,20 +99,24 @@ def equalities_func(D, m, nk, x):
     return equality_list
 
 
-def save_natural_vector(sequence_file, vector_file, m):
+def save_natural_vector(sequence_file, vector_file, m, rand_sequences):
     """
     Converts the sequence to a natural vector
     :param sequence_file: DNA sequence
     :param vector_file: file where the converted vector is saved to
     :param m: degree of the moment
+    :param rand_sequences: number of random sequences from the file
     :return: "vector file saved"
     """
     vec_file = open(vector_file, 'w')
+    x = random.sample(range(100), 36)
+    for i in range(len(x)):
+        x[i] *= 2
     with open(sequence_file) as fp:
         line = fp.readline()
         line_counter = 1
         while line:
-            if line_counter % 2 == 0 and len(line.strip()) > 1:
+            if line_counter % 2 == 0 and len(line.strip()) > 1 and line_counter in x:
                 vect = converter_m(line.strip(), m)
                 vec_file.write(','.join(str(e) for e in vect))
                 vec_file.write('\n')
@@ -224,7 +229,7 @@ if __name__ == "__main__":
 
     # generate natural vector file
     #save_natural_vector('SeqVer.fasta', 'SeqVer_vectors.txt', max_degree)
-    save_natural_vector(sequence_file, vector_file, max_degree) 
+    save_natural_vector(sequence_file, vector_file, max_degree, 36)
     D, N = nv_converter(vector_file, max_degree)
     print('natural vector file saved: %s' % sequence_file)
     """
@@ -253,6 +258,8 @@ if __name__ == "__main__":
     sdp.write_to_file(max_model_file)
     print('SDPA model file saved: %s' % max_model_file)
 
+"""
+
     # The solver only works when there's an optimizer installed, such as MOSEK.
     sdp.solve()
     # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
@@ -269,9 +276,4 @@ if __name__ == "__main__":
     for i in range(n_vars):
         subs[x[i]] = sdp[x[i]]
     obj.evalf(subs=subs)
-
-    # Compares the minimum and the maximum to the exponential summation
-    if min_cost <= exp_sum(max_degree, sum(test_nk)) <= max_cost:
-        print('There is a solution.')
-    else:
-        print('There is not a solution.')
+"""
