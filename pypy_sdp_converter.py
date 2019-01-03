@@ -193,7 +193,6 @@ def nv_converter(vector_file, m):
                     D[2][t].append(float(line[t * 4 + 2]))
                     D[3][t].append(float(line[t * 4 + 3]))
                 N += 1
-    
     return D, N
 
 
@@ -210,100 +209,118 @@ def exp_sum(m, n):
     return tsm
 
 
+def multi_function(four_d_points_file):
+    """
+    Iterates through the 100 four d points and produces the solution file
+    :param four_d_points: 100 4-d points
+    :return: a 2-d array containing all 100 4-d points
+    """
+    array1 = []
+    n_file = open(four_d_points_file, 'r')
+    with open(four_d_points_file) as fp:
+        for line in fp:
+            array1.append(list(map(int, line.split(','))))
+    n_file.close()
+    return array1
+
+
 if __name__ == "__main__":
     # enter in terminal "python tester.py m", where m >= 2
     max_degree = int(sys.argv[1])
 
-    # the number of As, Cs, Ts, and Gs. To be tested
-    test_nk = [2890, 1436, 1817, 1875]
-    level = 2  # Requested level of relaxation, for accuracy
-    min_model_file = 'seq_ver_min_model_%d.dat-s' % max_degree
-    max_model_file = 'seq_ver_max_model_%d.dat-s' % max_degree
-    #sequence_file = 'group_M_shortest20.fasta'
-    sequence_file = 'SeqVer.fasta'
-    vector_file = 'SeqVer_vectors.txt'
+    four_d_points = multi_function('minidata.txt')
+    for row in four_d_points:
+        test_nk = row
+        # the number of As, Cs, Ts, and Gs. To be tested
+        # test_nk = [2890, 1436, 1817, 1875]
+        level = 2  # Requested level of relaxation, for accuracy
+        min_model_file = 'seq_ver_min_model_%d.dat-s' % max_degree
+        max_model_file = 'seq_ver_max_model_%d.dat-s' % max_degree
+        #sequence_file = 'group_M_shortest20.fasta'
+        sequence_file = 'SeqVer.fasta'
+        vector_file = 'SeqVer_vectors.txt'
 
-    # generate natural vector file
-    #save_natural_vector('SeqVer.fasta', 'SeqVer_vectors.txt', max_degree)
-    save_natural_vector(sequence_file, vector_file, max_degree) 
-    D, N = nv_converter(vector_file, max_degree)
-    print('natural vector file saved: %s' % sequence_file)
-    """
-        D[k][0] is nk, where nk is the sum of n_A, n_C, n_G, and n_T
-        D[k][1] is mu_k. mean of the positions
-        D[k][n] n >=2. represents the nth moment
-        N is the number of sequences
-    """
-    print('Total number of natural vector: %d' % N)
-    n_vars = N  # Number of variables
-    x = generate_variables('x', n_vars)
+        # generate natural vector file
+        #save_natural_vector('SeqVer.fasta', 'SeqVer_vectors.txt', max_degree)
+        save_natural_vector(sequence_file, vector_file, max_degree)
+        D, N = nv_converter(vector_file, max_degree)
+        print('natural vector file saved: %s' % sequence_file)
+        """
+            D[k][0] is nk, where nk is the sum of n_A, n_C, n_G, and n_T
+            D[k][1] is mu_k. mean of the positions
+            D[k][n] n >=2. represents the nth moment
+            N is the number of sequences
+        """
+        print('Total number of natural vector: %d' % N)
+        n_vars = N  # Number of variables
+        x = generate_variables('x', n_vars)
 
-    #print(obj)
-    inequalities = bounds(n_vars, x)
-    equalities = equalities_func(D, max_degree, test_nk, x)
+        #print(obj)
+        inequalities = bounds(n_vars, x)
+        equalities = equalities_func(D, max_degree, test_nk, x)
 
-    sdp = SdpRelaxation(x,parallel=True)
+        sdp = SdpRelaxation(x,parallel=True)
 
-    # Find the minimum
-    print('find min start...')
-    obj = s_func(D, max_degree, test_nk, x)
-    print('Starting sdp conversion ...')
-    sdp.get_relaxation(level, objective=obj, inequalities=inequalities, equalities=equalities)
-    print('sdp relaxation finished')
-    print('saving SDPA model file ...')
-    sdp.write_to_file(min_model_file)
-    print('SDPA model file saved: %s' % min_model_file)
+        # Find the minimum
+        print('find min start...')
+        obj = s_func(D, max_degree, test_nk, x)
+        print('Starting sdp conversion ...')
+        sdp.get_relaxation(level, objective=obj, inequalities=inequalities, equalities=equalities)
+        print('sdp relaxation finished')
+        print('saving SDPA model file ...')
+        sdp.write_to_file(min_model_file)
+        print('SDPA model file saved: %s' % min_model_file)
 
-    """
-    # The solver only works when there's an optimizer installed, such as MOSEK.
-    sdp.solve()
-    # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
-    print(sdp.primal, sdp.dual, sdp.status)
-    if sdp.status == "optimal":
-        min_cost = sdp.primal
-    else:
-        min_cost = 0
-    # Prints the points of optimization
-    for i in range(n_vars):
-        print((sdp[x[i]]))
-    # Evaluates the cost function at the minimized point
-    subs = {}
-    for i in range(n_vars):
-        subs[x[i]] = sdp[x[i]]
-    obj.evalf(subs=subs)
-    """
+        """
+        # The solver only works when there's an optimizer installed, such as MOSEK.
+        sdp.solve()
+        # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
+        print(sdp.primal, sdp.dual, sdp.status)
+        if sdp.status == "optimal":
+            min_cost = sdp.primal
+        else:
+            min_cost = 0
+        # Prints the points of optimization
+        for i in range(n_vars):
+            print((sdp[x[i]]))
+        # Evaluates the cost function at the minimized point
+        subs = {}
+        for i in range(n_vars):
+            subs[x[i]] = sdp[x[i]]
+        obj.evalf(subs=subs)
+        """
 
-    # Find the maximum 
-    print('find max start...')
-    obj = -s_func(D, max_degree, test_nk, x)
-    print('Starting sdp conversion ...')
-    sdp.get_relaxation(level, objective=obj, inequalities=inequalities, equalities=equalities)
-    print('sdp relaxation finished')
-    print('saving SDPA model file ...')
-    sdp.write_to_file(max_model_file)
-    print('SDPA model file saved: %s' % max_model_file)
+        # Find the maximum
+        print('find max start...')
+        obj = -s_func(D, max_degree, test_nk, x)
+        print('Starting sdp conversion ...')
+        sdp.get_relaxation(level, objective=obj, inequalities=inequalities, equalities=equalities)
+        print('sdp relaxation finished')
+        print('saving SDPA model file ...')
+        sdp.write_to_file(max_model_file)
+        print('SDPA model file saved: %s' % max_model_file)
 
-    """
-    # The solver only works when there's an optimizer installed, such as MOSEK.
-    sdp.solve()
-    # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
-    print(sdp.primal, sdp.dual, sdp.status)
-    if sdp.status == "optimal":
-        max_cost = -sdp.primal
-    else:
-        max_cost = 0
-    # Prints the points of optimization
-    for i in range(n_vars):
-        print((sdp[x[i]]))
-    # Evaluates the cost function at the minimized point
-    subs = {}
-    for i in range(n_vars):
-        subs[x[i]] = sdp[x[i]]
-    obj.evalf(subs=subs)
-
-    # Compares the minimum and the maximum to the exponential summation
-    if min_cost <= exp_sum(max_degree, sum(test_nk)) <= max_cost:
-        print('There is a solution.')
-    else:
-        print('There is not a solution.')
-    """
+        """
+        # The solver only works when there's an optimizer installed, such as MOSEK.
+        sdp.solve()
+        # The results from the optimizer. There is a solution to the problem only when the status is "optimal"
+        print(sdp.primal, sdp.dual, sdp.status)
+        if sdp.status == "optimal":
+            max_cost = -sdp.primal
+        else:
+            max_cost = 0
+        # Prints the points of optimization
+        for i in range(n_vars):
+            print((sdp[x[i]]))
+        # Evaluates the cost function at the minimized point
+        subs = {}
+        for i in range(n_vars):
+            subs[x[i]] = sdp[x[i]]
+        obj.evalf(subs=subs)
+    
+        # Compares the minimum and the maximum to the exponential summation
+        if min_cost <= exp_sum(max_degree, sum(test_nk)) <= max_cost:
+            print('There is a solution.')
+        else:
+            print('There is not a solution.')
+        """
