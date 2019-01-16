@@ -261,7 +261,7 @@ if __name__ == "__main__":
 
     now = time.time()
     print("It took: ", now - then, " seconds")
-"""j
+
 
     # The solver only works when there's an optimizer installed, such as MOSEK.
     sdp.solve()
@@ -279,4 +279,4 @@ if __name__ == "__main__":
     for i in range(n_vars):
         subs[x[i]] = sdp[x[i]]
     obj.evalf(subs=subs)
-"""
+
