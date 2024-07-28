@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from ncpol2sdpa import *
 
-
+import pandas as pd
 def comb(n, k):
     """
     a function for n choose k. A separate function was necessary because pypy does not support scipy, which comb was a
